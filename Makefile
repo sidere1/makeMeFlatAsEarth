@@ -13,7 +13,8 @@ LINKS = -I/opt/homebrew/include -L/opt/homebrew/lib -lboost_filesystem
 endif
 ifeq ($(UNAME), Linux)
 CXXFLAGS := -std=c++11 -g
-LIBS = 
+LIBS = -I/usr/include -L/usr/lib
+LINKS = -lboost_system -L/home/silouane/Documents/logiciels/SALOME-9.2.0-UB18.04-SRC/BINARIES-UB18.04/boost/lib/ -lboost_filesystem
 endif
 
 # ADD MORE WARNINGS!
