@@ -52,10 +52,8 @@ int main(int argc, char** argv)
     }
     string filename (argv[argc-1]);
 	
-
-
     LatexFile l(filename, verbose);
     l.flatMeMaRace();
-
-	return 0;
+    
+    return 0;
 }

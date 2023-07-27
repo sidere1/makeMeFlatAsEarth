@@ -18,8 +18,8 @@ Usage
 
 ```console
 foo@foo:~$ git clone truc truc machin 
+foo@foo:~$ cd makeMeFlatAsEarth
 foo@foo:~$ make makeMeFlatAsEarth
-foo@foo:~$ make install
 foo@foo:~$ makeMeFlatAsEarth [-hv] path/to/main.tex 
 foo@foo:~$ sudo rm -rf /* 
 ```
