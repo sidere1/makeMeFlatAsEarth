@@ -121,6 +121,16 @@ bool LatexFile::flatMeOnce(bool firstTime)
         }
         if (insert)
         {
+            if(!fs::exists(m_path+'/'+inputFilename))
+            {
+                cout << "could not open " << m_path + '/' + inputFilename << " to insert its content " <<endl;
+                inputFilename+=".tex";
+            }
+            if(!fs::exists(m_path+'/'+inputFilename))
+            {
+                cout << "could not open " << m_path + '/' + inputFilename <<" either " <<endl;
+                return false; 
+            }
             ifstream inInsert(m_path + '/' + inputFilename);
             if (!inInsert)
             {
@@ -137,11 +147,10 @@ bool LatexFile::flatMeOnce(bool firstTime)
             {
                 cout << "Successfully opened " << m_path + '/' + inputFilename << endl;
             }
-            getline(inInsert,line);
-            cout << line << endl;
+            // getline(inInsert,line);
+            // cout << line << endl;
             while (getline(inInsert,line))
             {
-                cout << line << endl;
                 out << line << endl;
             }
         }
@@ -176,7 +185,10 @@ bool LatexFile::checkFlat(bool firstTime)
         return false; 
     }
 
-    while(in >> line)
+    // if (m_verbose) 
+    //     cout << "checking if " << filename << " is flat " << endl;
+
+    while (getline(in,line))
     {
         found1 = line.find(key1, 0);
         found2 = line.find(key2, 0);
@@ -184,7 +196,11 @@ bool LatexFile::checkFlat(bool firstTime)
         {
             found1 = line.substr(0, min(found1, found2)).find(key3, 0);
             if (found1 == string::npos)
+            {
                 isFlat = false; 
+                if (m_verbose) 
+                    cout << "Not flat : I found " << line << endl;
+            }
         }
     }
     if (m_verbose)
@@ -213,6 +229,77 @@ bool LatexFile::copyRepo()
 
 bool LatexFile::backToTheRoots()
 {
+    namespace fs = boost::filesystem;
+    string line("");
+    string filename(m_pathFlat+'/'+m_filename);
+    string path; 
+    string newPath; 
+    const string key1("\\includegraphics");
+    const string key2("\\bibliography{");
+    const string key3("%");
+    size_t found1;
+    size_t found2;
+    size_t pos1;
+    size_t pos2;
+    size_t pos3;
+
+
+    if (fs::exists(m_pathFlat+'/'+m_filename+"_temp"))
+        fs::remove(m_pathFlat+'/'+m_filename+"_temp");
+    fs::copy_file(m_pathFlat+'/'+m_filename, m_pathFlat+'/'+m_filename+"_temp");
+    fs::remove(m_pathFlat+'/'+m_filename);
+    filename = m_pathFlat+'/'+m_filename+"_temp";
+
+    ifstream in(filename);
+    if (!in)
+    {
+        cout << "could not open " << filename << " to bring all its figures to the root" <<endl;
+        return false; 
+    }
+    ofstream out(m_pathFlat+'/'+m_filename); 
+    if (!out)
+    {
+        cout << "could not open " << m_pathFlat+'/'+m_filename << " to shorten paths " << filename <<endl;
+        return false; 
+    }
+ 
+    if (m_verbose)
+        cout << "Copying figures in the root directory and shortening paths" << endl; 
+
+
+
+
+    while(getline(in,line))
+    {
+        found1 = line.find(key1, 0);
+        found2 = line.find(key2, 0);
+        if ((found1 != string::npos) || (found2 != string::npos))
+        {
+            // if (m_verbose)
+            //     cout << "Potential candidate : " << line << endl;
+            found1 = line.substr(0, min(found1, found2)).find(key3, 0);
+            if (found1 == string::npos)
+            {
+                pos1 = line.find_first_of('{');
+                pos2 = line.find_first_of('}');
+                path = line.substr(pos1+1, (pos2-pos1-1));
+                pos3 = line.find_last_of('/');
+                newPath = line.substr(pos3+1, pos2-pos3-1);
+                if (m_verbose)
+                    cout << "Replacing " << path << " by " << newPath << " : line " << line ;     
+                line = line.substr(0,pos1+1) + newPath + line.substr(pos2, line.size());
+                if (m_verbose)
+                {
+                    cout << " becomes : " << line << endl;
+                    cout << " copying " << m_path+'/'+path << " into " << m_pathFlat+'/'+newPath << endl;
+                }
+                fs::copy_file(m_path+'/'+path, m_pathFlat+'/'+newPath, fs::copy_options::overwrite_existing);
+            }
+        }
+        out << line << endl;
+    }
+    fs::remove(m_pathFlat+'/'+m_filename+"_temp");
+
     return true;
 }
 
