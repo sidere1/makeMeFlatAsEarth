@@ -242,6 +242,7 @@ bool LatexFile::backToTheRoots()
     size_t pos1;
     size_t pos2;
     size_t pos3;
+    size_t iFile(0);
 
 
     if (fs::exists(m_pathFlat+'/'+m_filename+"_temp"))
@@ -275,8 +276,6 @@ bool LatexFile::backToTheRoots()
         found2 = line.find(key2, 0);
         if ((found1 != string::npos) || (found2 != string::npos))
         {
-            // if (m_verbose)
-            //     cout << "Potential candidate : " << line << endl;
             found1 = line.substr(0, min(found1, found2)).find(key3, 0);
             if (found1 == string::npos)
             {
@@ -284,7 +283,7 @@ bool LatexFile::backToTheRoots()
                 pos2 = line.find_first_of('}');
                 path = line.substr(pos1+1, (pos2-pos1-1));
                 pos3 = line.find_last_of('/');
-                newPath = line.substr(pos3+1, pos2-pos3-1);
+                newPath = to_string(iFile) + "-" + line.substr(pos3+1, pos2-pos3-1);
                 if (m_verbose)
                     cout << "Replacing " << path << " by " << newPath << " : line " << line ;     
                 line = line.substr(0,pos1+1) + newPath + line.substr(pos2, line.size());
@@ -294,6 +293,7 @@ bool LatexFile::backToTheRoots()
                     cout << " copying " << m_path+'/'+path << " into " << m_pathFlat+'/'+newPath << endl;
                 }
                 fs::copy_file(m_path+'/'+path, m_pathFlat+'/'+newPath, fs::copy_options::overwrite_existing);
+                iFile++;
             }
         }
         out << line << endl;
@@ -302,11 +302,3 @@ bool LatexFile::backToTheRoots()
 
     return true;
 }
-
-
-
-// std::string m_filename;
-// std::string m_filenameFlat;
-// std::string m_path;
-// std::string m_pathFlat;
-// bool m_imFlat;
